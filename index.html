@@ -1,0 +1,75 @@
+import tkinter as tk
+import random
+
+# Paste your own lyric lines here, one per line, inside quotes, ending with a comma
+LYRICS = [
+    "Lyric line 1 goes here",
+    "Lyric line 2 goes here",
+    "Lyric line 3 goes here",
+    "Lyric line 4 goes here",
+    "Lyric line 5 goes here",
+    "Lyric line 6 goes here",
+    "Lyric line 7 goes here",
+    "Lyric line 8 goes here",
+    "Lyric line 9 goes here",
+]
+
+SPAWN_DELAY = 2500   # ms between cards (smaller = faster)
+RISE_SPEED = 2       # pixels per step (bigger = faster)
+TYPE_SPEED = 60      # ms per letter (smaller = faster typing)
+CARD_W, CARD_H = 300, 140
+
+root = tk.Tk()
+root.withdraw()  # hide the empty main window
+SCREEN_W = root.winfo_screenwidth()
+SCREEN_H = root.winfo_screenheight()
+
+
+class LyricCard:
+    def __init__(self, text):
+        self.text = text
+        self.index = 0
+
+        self.win = tk.Toplevel(root)
+        self.win.overrideredirect(True)          # no title bar
+        self.win.attributes("-topmost", True)    # stay above VS Code
+        self.win.configure(bg="#f2f2f2")
+
+        self.x = random.randint(50, SCREEN_W - CARD_W - 50)
+        self.y = SCREEN_H - CARD_H - 80
+        self.win.geometry(f"{CARD_W}x{CARD_H}+{self.x}+{self.y}")
+
+        self.label = tk.Label(
+            self.win, text="", font=("Malgun Gothic", 16),
+            bg="#f2f2f2", fg="black", wraplength=CARD_W - 30, justify="center"
+        )
+        self.label.pack(expand=True, fill="both", padx=15, pady=15)
+
+        self.type_next()
+        self.rise()
+
+    def type_next(self):
+        if self.index <= len(self.text):
+            self.label.config(text=self.text[:self.index])
+            self.index += 1
+            self.win.after(TYPE_SPEED, self.type_next)
+
+    def rise(self):
+        self.y -= RISE_SPEED
+        if self.y < -CARD_H:
+            self.win.destroy()
+            return
+        self.win.geometry(f"+{self.x}+{self.y}")
+        self.win.after(30, self.rise)
+
+
+def spawn(i):
+    if i < len(LYRICS):
+        LyricCard(LYRICS[i])
+        root.after(SPAWN_DELAY, spawn, i + 1)
+    else:
+        root.after(20000, root.destroy)  # close the program after the last card
+
+
+spawn(0)
+root.mainloop()
